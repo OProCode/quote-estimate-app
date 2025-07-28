@@ -21,8 +21,11 @@ class App(tk.Tk):
         self.geometry("1080x720")
 
         self.fields = []
+        self.entry_fields = []
         self.mandatory_fields = []
         self.frame_column = ttk.Frame(self)
+
+        # TODO: Develop a more efficient way to handle labels and fields.
 
         self.setup_grid()
         self.pack_widgets()
@@ -50,6 +53,7 @@ class App(tk.Tk):
                 entry.grid(row=1, column=index, padx=5, pady=5)
                 self.fields.append(entry)
                 self.mandatory_fields.append(entry)
+                self.entry_fields.append(entry)
             elif label["type"] == "combo":
                 combo = ttk.Combobox(self.frame_column)
                 combo.grid(row=1, column=index, padx=5, pady=5)
@@ -62,7 +66,7 @@ class App(tk.Tk):
                     combo["values"] = ["Basic", "Moderate", "Extensive"]
                     combo.current(0)
             elif label["type"] == "label":
-                text = tk.Label(self.frame_column)
+                text = tk.Label(self.frame_column, bg="grey", width=20)
                 text.grid(row=1, column=index, padx=5, pady=5)
                 self.fields.append(text)
 
@@ -80,6 +84,7 @@ class App(tk.Tk):
         Calculates:     Estimated hours and total cost based on the provided inputs.
         Returns:        None
         """
+        # TODO: Display all errors in a single message box instead of multiple pop-ups.
         for field in self.mandatory_fields:
             if not field.get():
                 messagebox.showerror(
@@ -87,8 +92,7 @@ class App(tk.Tk):
                 )
                 return
 
-        for field in self.fields:
-            if isinstance(field, tk.Entry):
+        for field in self.entry_fields:
                 try:
                     float(field.get())
                 except ValueError:
