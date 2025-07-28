@@ -1,7 +1,6 @@
-from math import nan
-from multiprocessing import Value
 import tkinter as tk
 from tkinter import ttk, messagebox
+
 
 class App(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -15,24 +14,33 @@ class App(tk.Tk):
             {"type": "combo", "name": "Implementation"},
             {"type": "entry", "name": "Buffer"},
             {"type": "label", "name": "Estimated Hours"},
-            {"type": "label", "name": "Total Cost"}
+            {"type": "label", "name": "Total Cost"},
         ]
-        
+
         self.title("Quote Estimate")
         self.geometry("1080x720")
 
         self.fields = []
         self.mandatory_fields = []
         self.frame_column = ttk.Frame(self)
-        
+
         self.setup_grid()
         self.pack_widgets()
 
     def setup_grid(self):
+        """Set up the grid configuration for the frame.
+        Args:           None
+        Returns:        None
+        """
         for i, label in enumerate(self.labels):
             self.frame_column.columnconfigure(i, weight=1)
 
     def pack_widgets(self):
+        """Creates and packs the widgets in the frame. The calculate button calls the calculate_estimated_hours
+        method to calculate the results.
+        Args:           None
+        Returns:        None
+        """
         for index, label in enumerate(self.labels):
             label_iteration = tk.Label(self.frame_column, text=label["name"])
             label_iteration.grid(row=0, column=index, padx=5, pady=5)
@@ -59,30 +67,47 @@ class App(tk.Tk):
                 self.fields.append(text)
 
         self.frame_column.pack(padx=5, pady=5, fill=tk.X)
-        calc_btn = tk.Button(self, text="Calculate", command=self.calculate_estimated_hours)
+        calc_btn = tk.Button(
+            self, text="Calculate", command=self.calculate_estimated_hours
+        )
         calc_btn.pack(pady=10)
 
     def calculate_estimated_hours(self):
+        """Adds calculation logic to the calculate button, checks for mandatory fields, and validates numeric entries.
+        Args:           None
+        Raises:         ValueError if any mandatory field is empty or if numeric fields contain non-numeric values.
+        Displays:       Error messages for missing fields or invalid numeric entries.
+        Calculates:     Estimated hours and total cost based on the provided inputs.
+        Returns:        None
+        """
         for field in self.mandatory_fields:
             if not field.get():
-                messagebox.showerror("Missing Field", "Please fill in all mandatory fields.")
+                messagebox.showerror(
+                    "Missing Field", "Please fill in all mandatory fields."
+                )
                 return
-            
+
         for field in self.fields:
             if isinstance(field, tk.Entry):
                 try:
                     float(field.get())
                 except ValueError:
-                    messagebox.showerror("Invalid Value", "Entry fields must contain numeric values.")
+                    messagebox.showerror(
+                        "Invalid Value", "Entry fields must contain numeric values."
+                    )
                     return
 
         try:
             base_rate = float(self.fields[0].get())
             length = float(self.fields[1].get())
 
-            complexity = {"Low": 4.0, "Medium": 5.0, "High": 6.0}.get(self.fields[2].get(), 4.0)
+            complexity = {"Low": 4.0, "Medium": 5.0, "High": 6.0}.get(
+                self.fields[2].get(), 4.0
+            )
             variations = float(self.fields[3].get())
-            implementation = {"Basic": 1.0, "Moderate": 2.0, "Extensive": 3.0}.get(self.fields[4].get(), 1.0)
+            implementation = {"Basic": 1.0, "Moderate": 2.0, "Extensive": 3.0}.get(
+                self.fields[4].get(), 1.0
+            )
             buffer = float(self.fields[5].get())
 
             result = (length * complexity) + variations + implementation + buffer
@@ -92,6 +117,7 @@ class App(tk.Tk):
         except ValueError:
             self.fields[6].config(text="Error")
             self.fields[7].config(text="Error")
+
 
 if __name__ == "__main__":
     app = App()
