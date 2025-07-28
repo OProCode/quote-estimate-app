@@ -1,3 +1,5 @@
+from math import nan
+from multiprocessing import Value
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -15,12 +17,14 @@ class App(tk.Tk):
             {"type": "label", "name": "Estimated Hours"},
             {"type": "label", "name": "Total Cost"}
         ]
-        self.fields = []
-        self.mandatory_fields = []
-        self.frame_column = ttk.Frame(self)
+        
         self.title("Quote Estimate")
         self.geometry("1080x720")
 
+        self.fields = []
+        self.mandatory_fields = []
+        self.frame_column = ttk.Frame(self)
+        
         self.setup_grid()
         self.pack_widgets()
 
@@ -64,10 +68,13 @@ class App(tk.Tk):
                 messagebox.showerror("Missing Field", "Please fill in all mandatory fields.")
                 return
             
-        for field in self.labels:
-            if field.type == "entry" and field.get() is not int:
-                messagebox.showerror("Invalid Value", "Entry fields must contain numeric values.")
-                return
+        for field in self.fields:
+            if isinstance(field, tk.Entry):
+                try:
+                    float(field.get())
+                except ValueError:
+                    messagebox.showerror("Invalid Value", "Entry fields must contain numeric values.")
+                    return
 
         try:
             base_rate = float(self.fields[0].get())
