@@ -1,3 +1,4 @@
+from os import error
 import tkinter as tk
 from tkinter import ttk, messagebox
 
@@ -7,14 +8,14 @@ class App(tk.Tk):
         super().__init__(*args, **kwargs)
 
         self.labels = [
-            {"type": "entry", "name": "Base Rate"},
-            {"type": "entry", "name": "Length"},
-            {"type": "combo", "name": "Complexity"},
-            {"type": "entry", "name": "Variations"},
-            {"type": "combo", "name": "Implementation"},
-            {"type": "entry", "name": "Buffer"},
-            {"type": "label", "name": "Estimated Hours"},
-            {"type": "label", "name": "Total Cost"},
+            {"type": "entry", "name": "Base Rate", "mandatory": True, "field": ""},
+            {"type": "entry", "name": "Length", "mandatory": True, "field": ""},
+            {"type": "combo", "name": "Complexity", "mandatory": True, "field": ""},
+            {"type": "entry", "name": "Variations", "mandatory": True, "field": ""},
+            {"type": "combo", "name": "Implementation", "mandatory": True, "field": ""},
+            {"type": "entry", "name": "Buffer", "mandatory": False, "field": ""},
+            {"type": "label", "name": "Estimated Hours", "mandatory": False, "field": ""},
+            {"type": "label", "name": "Total Cost", "mandatory": False, "field": ""},
         ]
 
         self.title("Quote Estimate")
@@ -45,30 +46,30 @@ class App(tk.Tk):
         Returns:        None
         """
         for index, label in enumerate(self.labels):
-            label_iteration = tk.Label(self.frame_column, text=label["name"])
-            label_iteration.grid(row=0, column=index, padx=5, pady=5)
-
             if label["type"] == "entry":
                 entry = tk.Entry(self.frame_column)
                 entry.grid(row=1, column=index, padx=5, pady=5)
-                self.fields.append(entry)
-                self.mandatory_fields.append(entry)
-                self.entry_fields.append(entry)
+                label["field"] = entry
             elif label["type"] == "combo":
                 combo = ttk.Combobox(self.frame_column)
                 combo.grid(row=1, column=index, padx=5, pady=5)
-                self.fields.append(combo)
-                self.mandatory_fields.append(combo)
+                label["field"] = combo
                 if label["name"] == "Complexity":
-                    combo["values"] = ["Low", "Medium", "High"]
+                    combo["values"] = [1, 2, 3]
                     combo.current(0)
                 if label["name"] == "Implementation":
-                    combo["values"] = ["Basic", "Moderate", "Extensive"]
+                    combo["values"] = [1, 2, 3]
                     combo.current(0)
             elif label["type"] == "label":
                 text = tk.Label(self.frame_column, bg="grey", width=20)
                 text.grid(row=1, column=index, padx=5, pady=5)
-                self.fields.append(text)
+                label["value"] = text
+
+            if label["mandatory"]:
+                label["name"] += " *"
+
+            label_iteration = tk.Label(self.frame_column, text=label["name"])
+            label_iteration.grid(row=0, column=index, padx=5, pady=5)
 
         self.frame_column.pack(padx=5, pady=5, fill=tk.X)
         calc_btn = tk.Button(
@@ -85,39 +86,34 @@ class App(tk.Tk):
         Returns:        None
         """
         # TODO: Display all errors in a single message box instead of multiple pop-ups.
-        for field in self.mandatory_fields:
-            if not field.get():
+        # TODO: Apply colour change to entry fields only to avoid crashing when reaching combo fields. 
+        
+        values = []
+
+        for label in self.labels:
+            if label["type"] == "entry" and not label["field"].get():
+                label["field"].config(highlightbackground="red")
                 messagebox.showerror(
-                    "Missing Field", "Please fill in all mandatory fields."
+                    "Missing Field", f"Please fill in the {label['name']} field."
                 )
                 return
-
-        for field in self.entry_fields:
-                try:
-                    float(field.get())
-                except ValueError:
-                    messagebox.showerror(
-                        "Invalid Value", "Entry fields must contain numeric values."
-                    )
-                    return
-
+            if label["type"] == "combo" and not label["field"].get():
+                messagebox.showerror(
+                    "Missing Field", f"Please select a value for {label['name']}."
+                )
+                return
+            
+        # TODO: get() returns an attribute error.
         try:
-            base_rate = float(self.fields[0].get())
-            length = float(self.fields[1].get())
+            for label in self.labels:
+                values.append(float(label["field"].get()))
 
-            complexity = {"Low": 4.0, "Medium": 5.0, "High": 6.0}.get(
-                self.fields[2].get(), 4.0
-            )
-            variations = float(self.fields[3].get())
-            implementation = {"Basic": 1.0, "Moderate": 2.0, "Extensive": 3.0}.get(
-                self.fields[4].get(), 1.0
-            )
-            buffer = float(self.fields[5].get())
-
-            result = (length * complexity) + variations + implementation + buffer
+            print(values)
+                    
+            result = (values[1] * values[2]) + values[3] + values[4] + values[5]
 
             self.fields[6].config(text=str(result))
-            self.fields[7].config(text=str(result * base_rate))
+            self.fields[7].config(text=str(result * values[0]))
         except ValueError:
             self.fields[6].config(text="Error")
             self.fields[7].config(text="Error")
